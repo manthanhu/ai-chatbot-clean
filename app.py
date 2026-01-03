@@ -69,4 +69,12 @@ demo = gr.ChatInterface(
     description="Ask anything. Live data supported."
 )
 
-demo.launch(show_error=True)
+import os
+
+demo.launch(
+    server_name="0.0.0.0",
+    server_port=int(os.environ.get("PORT", 7860)),
+    show_error=True
+)
+
+
