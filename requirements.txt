@@ -1,0 +1,6 @@
+gradio>=4.0
+groq
+python-dotenv
+ddgs
+requests
+beautifulsoup4
