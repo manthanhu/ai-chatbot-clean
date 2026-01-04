@@ -23,6 +23,49 @@ def chat(message, history):
     try:
         message = message.strip()
 
+        # Limit memory (last N messages)
+        MAX_TURNS = 6
+        history = history[-MAX_TURNS:] if history else []
+
+        # Build messages for LLM
+        messages = [
+            {"role": "system", "content": BASE_SYSTEM_PROMPT}
+        ]
+
+        for h in history:
+            messages.append({"role": h["role"], "content": h["content"]})
+
+        messages.append({"role": "user", "content": message})
+
+        # Detect need for web search
+        needs_web = any(word in message.lower() for word in [
+            "today", "latest", "current", "population", "news", "price"
+        ])
+
+        if needs_web:
+            web_data = web_search(message)
+            messages[0]["content"] = WEB_SYSTEM_PROMPT
+            messages[-1]["content"] = f"""
+WEB SEARCH RESULTS:
+{web_data}
+
+QUESTION:
+{message}
+"""
+
+        response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=messages,
+        )
+
+        return response.choices[0].message.content
+
+    except Exception as e:
+        return f"⚠️ Internal error: {str(e)}"
+
+    try:
+        message = message.strip()
+
         # Handle date locally
         if message.lower() in ["what date is it", "what is the date today"]:
             return f"Today is {datetime.now().strftime('%d %B %Y')}"
